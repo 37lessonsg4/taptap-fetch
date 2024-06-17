@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # 目标URL
-url = 'https://www.taptap.cn/'
+url = 'https://www.taptap.cn/top/download/'
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 '
