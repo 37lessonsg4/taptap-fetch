@@ -1,3 +1,4 @@
+import logging
 import re
 
 import requests
@@ -24,10 +25,10 @@ headers = {
                   'Safari/537.36 Edg/126.0.0.0'
 }
 
-results = list()
+rank_results = list()
 
 
-def getDataPage(page):
+def get_rank_list(page):
     response = requests.get(url + f"?page={page}", headers=headers)
     response.encoding = 'utf-8'
 
@@ -45,15 +46,64 @@ def getDataPage(page):
         game_rating = game.find(class_='tap-rating__number').text
         game_name = game_center.find('meta', itemprop='name')['content']
         game_id = re.search(r'/app/(\d+)', game.find('a', class_='game-cell__icon')['href']).group(1)
-        result_game_item = GameItem(game_rank, game_name, game_rating, game_icon_url, game_id)
-        results.append(result_game_item)
+        result_rank_item = GameItem(game_rank, game_name, game_rating, game_icon_url, game_id)
+        rank_results.append(result_rank_item)
+
+def get_game_detail(game_id):
+    response = requests.get(f'https://www.taptap.cn/app/{game_id}', headers=headers)
+    response.encoding = 'utf-8'
+    html_content = response.text
+    soup = BeautifulSoup(html_content, 'html.parser')
+    game_name = soup.find('h1', class_='text-default--size').text
+    basic_info = soup.find('div', class_='app-basic-info').find_all('div', class_='single-info__content')
+
+    # 初始化字典以存储信息
+    game_info = {
+        'name': game_name,
+        'downloads': None,
+        'follow': None,
+        'size': None,
+        'developer': None,
+        'heat': None
+    }
+
+    game_info_list = list()
+
+    # 遍历基本信息
+    for info in basic_info:
+        label = info.find('span', class_='caption-m12-w12 gray-06')
+        value = info.find('div',
+                          class_='tap-text tap-text__one-line single-info__content__value gray-07 overflow-single')
+
+        if label and value:
+            label_text = label.text.strip()
+            value_text = value.text.strip()
+
+            if label_text == '下载':
+                game_info['downloads'] = value_text
+            elif label_text == '关注':
+                game_info['followers'] = value_text
+            elif label_text == '游戏大小':
+                game_info['size'] = value_text
+            elif label_text == '开发' or label_text == '厂商':
+                game_info['developer'] = value_text
+
+        # for key, value in game_info.items():
+        #     if value is None:
+        #         print(info.prettify())
+
+    return game_info
+
+
+
 
 
 
 
 print('开始爬取数据...')
 for i in range(1, 2):
-    getDataPage(i)
-for result in results:
-    print(result)
+    get_rank_list(i)
+for result in rank_results:
+    # print(result)
+    print(get_game_detail(result.id))
 print('爬取数据结束！')
