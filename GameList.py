@@ -5,14 +5,15 @@ from bs4 import BeautifulSoup
 
 
 class GameItem:
-    def __init__(self, rank, name, rating, icon_url):
+    def __init__(self, rank, name, rating, icon_url, id):
         self.rank = rank
         self.name = name
         self.rating = rating
         self.icon_url = icon_url
+        self.id = id
 
     def __str__(self):
-        return f'Rank: {self.rank}, Name: {self.name}, Rating: {self.rating}, Icon URL: {self.icon_url}'
+        return f'Rank: {self.rank}, Name: {self.name}, Rating: {self.rating}, Icon URL: {self.icon_url}, ID: {self.id}'
 
 
 # 目标URL
@@ -43,12 +44,15 @@ def getDataPage(page):
         game_icon_url = game.find('img', alt=re.compile('.*icon$'))['src']
         game_rating = game.find(class_='tap-rating__number').text
         game_name = game_center.find('meta', itemprop='name')['content']
-        result_game_item = GameItem(game_rank, game_name, game_rating, game_icon_url)
+        game_id = re.search(r'/app/(\d+)', game.find('a', class_='game-cell__icon')['href']).group(1)
+        result_game_item = GameItem(game_rank, game_name, game_rating, game_icon_url, game_id)
         results.append(result_game_item)
 
 
+
+
 print('开始爬取数据...')
-for i in range(1, 11):
+for i in range(1, 2):
     getDataPage(i)
 for result in results:
     print(result)
