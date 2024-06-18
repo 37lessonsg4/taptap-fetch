@@ -1,3 +1,4 @@
+import csv
 import logging
 import re
 
@@ -92,18 +93,24 @@ def get_game_detail(game_id):
         if follower_label and follower_text and '关注' in follower_label.text:
             game_info['followers'] = follower_text.text
 
-
     return game_info
 
+def save_to_csv(info_list, filename='game_details.csv'):
+    keys = info_list[0].keys()
+    with open(filename, 'w', newline='', encoding='utf-8') as output_file:
+        dict_writer = csv.DictWriter(output_file, fieldnames=keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(info_list)
 
 
 
 
-
+game_info_list = []
 
 print('开始爬取数据...')
 for i in range(1, 2):
     get_rank_list(i)
 for result in rank_results:
-    print(get_game_detail(result.id))
+    game_info_list.append(get_game_detail(result.id))
+save_to_csv(game_info_list)
 print('爬取数据结束！')
