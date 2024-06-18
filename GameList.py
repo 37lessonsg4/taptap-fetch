@@ -50,7 +50,19 @@ def get_rank_list(page):
         result_rank_item = GameItem(game_rank, game_name, game_rating, game_icon_url, game_id)
         rank_results.append(result_rank_item)
 
+
+# 初始化字典以存储信息
 def get_game_detail(game_id):
+    game_info = {
+        'name': '',
+        'downloads': None,
+        'followers': None,
+        'size': None,
+        'developer': None,
+        'heat': None,
+        'description': ''
+    }
+
     response = requests.get(f'https://www.taptap.cn/app/{game_id}', headers=headers)
     response.encoding = 'utf-8'
     html_content = response.text
@@ -58,20 +70,11 @@ def get_game_detail(game_id):
     game_name = soup.find('h1', class_='text-default--size').text
     basic_info = soup.find('div', class_='app-basic-info').find_all('div', class_='single-info')
 
-    # 初始化字典以存储信息
-    game_info = {
-        'name': game_name,
-        'downloads': None,
-        'followers': None,
-        'size': None,
-        'developer': None,
-        'heat': None
-    }
+    game_info['name'] = game_name
 
     for info in basic_info:
         label = info.find('span', class_='caption-m12-w12 gray-06')
-        value = info.find('div',
-                          class_='single-info__content__value')
+        value = info.find('div', class_='single-info__content__value')
 
         if label and value:
             label_text = label.text.strip()
@@ -93,7 +96,20 @@ def get_game_detail(game_id):
         if follower_label and follower_text and '关注' in follower_label.text:
             game_info['followers'] = follower_text.text
 
+    game_info['description'] = get_game_description(game_id)
     return game_info
+
+
+def get_game_description(game_id):
+    response = requests.get(f'https://www.taptap.cn/app/{game_id}/all-info', headers=headers)
+    response.encoding = 'utf-8'
+    html_content = response.text
+    soup = BeautifulSoup(html_content, 'html.parser')
+    description = soup.find('div', class_='app__intro__summary').find('span')
+    if description:
+        return description.text
+    return ''
+
 
 def save_to_csv(info_list, filename='game_details.csv'):
     keys = info_list[0].keys()
@@ -103,14 +119,13 @@ def save_to_csv(info_list, filename='game_details.csv'):
         dict_writer.writerows(info_list)
 
 
-
-
-game_info_list = []
+game_info_list = list()
 
 print('开始爬取数据...')
 for i in range(1, 2):
     get_rank_list(i)
 for result in rank_results:
-    game_info_list.append(get_game_detail(result.id))
+    game_detail = get_game_detail(result.id)
+    game_info_list.append(game_detail)
 save_to_csv(game_info_list)
 print('爬取数据结束！')
