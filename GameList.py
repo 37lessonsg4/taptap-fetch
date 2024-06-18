@@ -55,25 +55,22 @@ def get_game_detail(game_id):
     html_content = response.text
     soup = BeautifulSoup(html_content, 'html.parser')
     game_name = soup.find('h1', class_='text-default--size').text
-    basic_info = soup.find('div', class_='app-basic-info').find_all('div', class_='single-info__content')
+    basic_info = soup.find('div', class_='app-basic-info').find_all('div', class_='single-info')
 
     # 初始化字典以存储信息
     game_info = {
         'name': game_name,
         'downloads': None,
-        'follow': None,
+        'followers': None,
         'size': None,
         'developer': None,
         'heat': None
     }
 
-    game_info_list = list()
-
-    # 遍历基本信息
     for info in basic_info:
         label = info.find('span', class_='caption-m12-w12 gray-06')
         value = info.find('div',
-                          class_='tap-text tap-text__one-line single-info__content__value gray-07 overflow-single')
+                          class_='single-info__content__value')
 
         if label and value:
             label_text = label.text.strip()
@@ -81,16 +78,20 @@ def get_game_detail(game_id):
 
             if label_text == '下载':
                 game_info['downloads'] = value_text
-            elif label_text == '关注':
-                game_info['followers'] = value_text
             elif label_text == '游戏大小':
                 game_info['size'] = value_text
-            elif label_text == '开发' or label_text == '厂商':
-                game_info['developer'] = value_text
+            elif '热度' in label_text:
+                game_info['heat'] = value_text
 
-        # for key, value in game_info.items():
-        #     if value is None:
-        #         print(info.prettify())
+        dev_texts = info.find_all('div', {'class': 'tap-text tap-text__one-line'})
+        if len(dev_texts) == 2 and ('开发' in dev_texts[0].text or '厂商' in dev_texts[0].text):
+            game_info['developer'] = dev_texts[1].text
+
+        follower_label = info.find('div', {'class': 'app-basic-info__follow-text'})
+        follower_text = info.find('div', {'class': 'single-info__content__value'})
+        if follower_label and follower_text and '关注' in follower_label.text:
+            game_info['followers'] = follower_text.text
+
 
     return game_info
 
@@ -104,6 +105,5 @@ print('开始爬取数据...')
 for i in range(1, 2):
     get_rank_list(i)
 for result in rank_results:
-    # print(result)
     print(get_game_detail(result.id))
 print('爬取数据结束！')
