@@ -57,7 +57,7 @@ class GameInfo:
         self.downloads = None
         self.followers = None
         self.size = None
-        self.developer = None
+        self.manufacture = None
         self.heat = None
         self.description = ''
         self.album: list[str] = []
@@ -92,7 +92,7 @@ def get_game_detail(game_id) -> GameInfo:
 
         dev_texts = info.find_all('div', {'class': 'tap-text tap-text__one-line'})
         if len(dev_texts) == 2 and ('开发' in dev_texts[0].text or '厂商' in dev_texts[0].text):
-            game_info.developer = dev_texts[1].text
+            game_info.manufacture = dev_texts[1].text
 
         follower_label = info.find('div', {'class': 'app-basic-info__follow-text'})
         follower_text = info.find('div', {'class': 'single-info__content__value'})
