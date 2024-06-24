@@ -51,18 +51,20 @@ def get_rank_list(page):
         rank_results.append(result_rank_item)
 
 
-# 初始化字典以存储信息
-def get_game_detail(game_id):
-    game_info = {
-        'name': '',
-        'downloads': None,
-        'followers': None,
-        'size': None,
-        'developer': None,
-        'heat': None,
-        'description': ''
-    }
+class GameInfo:
+    def __init__(self):
+        self.name = ''
+        self.downloads = None
+        self.followers = None
+        self.size = None
+        self.developer = None
+        self.heat = None
+        self.description = ''
+        self.tags: list[str] = []
 
+
+def get_game_detail(game_id) -> GameInfo:
+    game_info = GameInfo()
     response = requests.get(f'https://www.taptap.cn/app/{game_id}', headers=headers)
     response.encoding = 'utf-8'
     html_content = response.text
@@ -70,7 +72,7 @@ def get_game_detail(game_id):
     game_name = soup.find('h1', class_='text-default--size').text
     basic_info = soup.find('div', class_='app-basic-info').find_all('div', class_='single-info')
 
-    game_info['name'] = game_name
+    game_info.name = game_name
 
     for info in basic_info:
         label = info.find('span', class_='caption-m12-w12 gray-06')
@@ -81,22 +83,22 @@ def get_game_detail(game_id):
             value_text = value.text.strip()
 
             if label_text == '下载':
-                game_info['downloads'] = value_text
+                game_info.downloads = value_text
             elif label_text == '游戏大小':
-                game_info['size'] = value_text
+                game_info.size = value_text
             elif '热度' in label_text:
-                game_info['heat'] = value_text
+                game_info.heat = value_text
 
         dev_texts = info.find_all('div', {'class': 'tap-text tap-text__one-line'})
         if len(dev_texts) == 2 and ('开发' in dev_texts[0].text or '厂商' in dev_texts[0].text):
-            game_info['developer'] = dev_texts[1].text
+            game_info.developer = dev_texts[1].text
 
         follower_label = info.find('div', {'class': 'app-basic-info__follow-text'})
         follower_text = info.find('div', {'class': 'single-info__content__value'})
         if follower_label and follower_text and '关注' in follower_label.text:
-            game_info['followers'] = follower_text.text
+            game_info.followers = follower_text.text
 
-    game_info['description'] = get_game_description(game_id)
+    game_info.description = get_game_description(game_id)
     return game_info
 
 
