@@ -109,7 +109,7 @@ def get_game_detail(game_id) -> GameInfo:
     album_sliders = soup.find('div', class_='app-trailer-screenshot-header__wrap')
     for image in album_sliders.find_all('img'):
         try:
-            game_info.album.append(image['src'])
+            game_info.album.append(image['data-src'])
         except KeyError:
             print(game_info.name, 'has no image')
             break
