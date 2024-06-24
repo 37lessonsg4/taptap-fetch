@@ -60,6 +60,7 @@ class GameInfo:
         self.developer = None
         self.heat = None
         self.description = ''
+        self.album: list[str] = []
         self.tags: list[str] = []
 
 
@@ -99,6 +100,23 @@ def get_game_detail(game_id) -> GameInfo:
             game_info.followers = follower_text.text
 
     game_info.description = get_game_description(game_id)
+
+    album_sliders = soup.find('div', class_='app-trailer-screenshot-header__wrap')
+    for image in album_sliders.find_all('img'):
+        try:
+            game_info.album.append(image['src'])
+        except KeyError:
+            print(game_info.name, 'has no image')
+            break
+
+    tags = soup.find('div', class_='app-intro__tag')
+    for tag in tags.find_all('a'):
+        try:
+            game_info.tags.append(tag.text)
+        except KeyError:
+            print(game_info.name, 'has no tag')
+            break
+    print(game_info.name, game_info.tags)
     return game_info
 
 
@@ -126,8 +144,8 @@ game_info_list = list()
 print('开始爬取数据...')
 for i in range(1, 2):
     get_rank_list(i)
+
 for result in rank_results:
     game_detail = get_game_detail(result.id)
     game_info_list.append(game_detail)
-save_to_csv(game_info_list)
 print('爬取数据结束！')
