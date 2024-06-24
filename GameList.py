@@ -58,10 +58,15 @@ class GameInfo:
         self.followers = None
         self.size = None
         self.manufacture = None
-        self.heat = None
         self.description = ''
         self.album: list[str] = []
         self.tags: list[str] = []
+
+    def comma_album(self):
+        return ','.join(self.album)
+
+    def comma_tags(self):
+        return ','.join(self.tags)
 
 
 def get_game_detail(game_id) -> GameInfo:
@@ -139,6 +144,17 @@ def save_to_csv(info_list, filename='game_details.csv'):
         dict_writer.writerows(info_list)
 
 
+def save_to_sql(info_list: list[GameInfo], filename='game_details.sql'):
+    with open(filename, 'w', encoding='utf-8') as output_file:
+        output_file.write(
+            "INSERT INTO game(name, downloads, followers, size, manufacture, description, album, tags) \n")
+        for info in info_list:
+            output_file.write(
+                f"('{info.name}', '{info.downloads}', '{info.followers}', '{info.size}',"
+                f" '{info.manufacture}', '{info.description}', '{info.comma_album()}', '{info.comma_tags()}'),\n"
+            )
+
+
 game_info_list = list()
 
 print('开始爬取数据...')
@@ -149,3 +165,5 @@ for result in rank_results:
     game_detail = get_game_detail(result.id)
     game_info_list.append(game_detail)
 print('爬取数据结束！')
+
+save_to_sql(game_info_list, 'game_details.sql')
