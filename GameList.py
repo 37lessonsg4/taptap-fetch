@@ -170,11 +170,24 @@ def save_to_sql(info_list: list[GameInfo], filename='game_details.sql'):
     with open(filename, 'w', encoding='utf-8') as output_file:
         output_file.write(
             "INSERT INTO game(name, icon, size, manufacture, description,dev_note, album, tags) VALUES\n ")
+        values = []
         for info in info_list:
-            output_file.write(
-                f"('{info.name}', '{info.icon}', '{info.size}',"
-                f" '{info.manufacture}', '{info.description}', '{info.devNote}', '{info.comma_album()}', '{info.comma_tags()}'),\n"
+            # 转义单引号
+            name = info.name.replace("'", "''")
+            icon = info.icon.replace("'", "''")
+            size = info.size.replace("'", "''")
+            manufacture = info.manufacture.replace("'", "''")
+            description = info.description.replace("'", "''")
+            dev_note = info.devNote.replace("'", "''")
+            album = info.comma_album().replace("'", "''")
+            tags = info.comma_tags().replace("'", "''")
+
+            values.append(
+                f"('{name}', '{icon}', '{size}', '{manufacture}', '{description}', '{dev_note}', '{album}', '{tags}')"
             )
+
+        # 将所有 VALUES 子句连接在一起并以分号结尾
+        output_file.write(",\n".join(values) + ";\n")
 
 
 game_info_list = list()
